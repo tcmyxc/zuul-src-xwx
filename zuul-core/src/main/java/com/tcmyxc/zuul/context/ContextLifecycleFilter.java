@@ -4,6 +4,9 @@ package com.tcmyxc.zuul.context;
 import javax.servlet.*;
 import java.io.IOException;
 
+/**
+ * 管理 RequestContext 的生命周期
+ */
 public class ContextLifecycleFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -15,6 +18,7 @@ public class ContextLifecycleFilter implements Filter {
         try {
             filterChain.doFilter(req, resp);
         } finally {
+            // 在一个请求完成之后清除上下文
             RequestContext.getCurrentContext().unset();
         }
 

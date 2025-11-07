@@ -9,14 +9,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FilterRegistry {
 
     // 饿汉式单例
-    private static final FilterRegistry instance = new FilterRegistry();
+    private static final FilterRegistry INSTANCE = new FilterRegistry();
 
     private final ConcurrentHashMap<String, ZuulFilter> filters = new ConcurrentHashMap<>();
 
     private FilterRegistry(){}
 
     public static final FilterRegistry instance(){
-        return instance;
+        return INSTANCE;
     }
 
     public ZuulFilter remove(String key){

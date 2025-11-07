@@ -14,7 +14,7 @@ public class FilterProcessor {
 
     protected static final Logger logger = LoggerFactory.getLogger(FilterProcessor.class);
 
-    // 饿汉式单例
+    // 非单例
     static FilterProcessor instance = new FilterProcessor();
 
     private FilterUsageNotifier usageNotifier;

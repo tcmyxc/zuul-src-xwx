@@ -17,11 +17,21 @@ public class FilterLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(FilterLoader.class);
 
-    static final FilterLoader instance = new FilterLoader();
+    // 饿汉式单例
+    private static final FilterLoader INSTANCE = new FilterLoader();
 
+    private FilterLoader(){}
+
+    /**
+     * 记录从文件加载的filter对应文件的上次修改时间
+     */
     private final ConcurrentHashMap<String, Long> filterClassLastModified = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> filterClassCode = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> filterCheck = new ConcurrentHashMap<>();
+
+    /**
+     * 快表，根据filter type查询过滤器的时候，先从这个表里面查，如果没有，说明就是没有，直接返回；有的话再从filterRegistry里面查
+     */
     private final ConcurrentHashMap<String, List<ZuulFilter>> hashFiltersByType = new ConcurrentHashMap<>();
 
     private FilterRegistry filterRegistry = FilterRegistry.instance();
@@ -43,7 +53,7 @@ public class FilterLoader {
     }
 
     public static FilterLoader getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     public ZuulFilter getFilter(String code, String name) throws Exception {
@@ -85,8 +95,8 @@ public class FilterLoader {
             Class clazz = COMPILER.compile(file);
             if (!Modifier.isAbstract(clazz.getModifiers())) {
                 filter = FILTER_FACTORY.newInstance(clazz);
+                // 如果快表里面有信息，要清除
                 List<ZuulFilter> list = hashFiltersByType.get(filter.filterType());
-                // TODO 为何要移除
                 if (list != null) {
                     hashFiltersByType.remove(filter.filterType());
                 }
