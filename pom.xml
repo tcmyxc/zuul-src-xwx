@@ -10,6 +10,9 @@
     <packaging>pom</packaging>
     <modules>
         <module>zuul-core</module>
+        <module>zuul-gateway</module>
+        <module>hello-service</module>
+        <module>zuul-simple-webapp</module>
     </modules>
 
     <properties>
