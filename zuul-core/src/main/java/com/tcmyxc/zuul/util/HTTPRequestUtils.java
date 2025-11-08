@@ -19,8 +19,6 @@ public class HTTPRequestUtils {
     private HTTPRequestUtils() {
     }
 
-    ;
-
     public static HTTPRequestUtils getInstance() {
         return INSTANCE;
     }
