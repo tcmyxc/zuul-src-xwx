@@ -3,6 +3,12 @@ package com.tcmyxc.zuul.monitoring;
 
 public class MonitoringHelper {
 
+    public static final void initMocks() {
+
+        CounterFactory.init(new CounterFactoryImpl());
+        TracerFactory.initialize(new TracerFactoryImpl());
+    }
+
 
     private static final class CounterFactoryImpl extends CounterFactory {
         @Override
