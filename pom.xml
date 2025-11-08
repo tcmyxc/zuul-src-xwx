@@ -13,6 +13,7 @@
         <module>zuul-gateway</module>
         <module>hello-service</module>
         <module>zuul-simple-webapp</module>
+        <module>spring-cloud-netflix-zuul</module>
     </modules>
 
     <properties>
