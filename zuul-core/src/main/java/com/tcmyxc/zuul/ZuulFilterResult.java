@@ -1,6 +1,8 @@
 package com.tcmyxc.zuul;
 
-
+/**
+ * done
+ */
 public final class ZuulFilterResult {
 
     private Object result;

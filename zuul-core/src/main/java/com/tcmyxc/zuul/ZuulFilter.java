@@ -8,6 +8,9 @@ import com.tcmyxc.zuul.monitoring.TracerFactory;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * done
+ */
 public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> {
 
     private final AtomicReference<DynamicBooleanProperty> filterDisabledRef = new AtomicReference<>();

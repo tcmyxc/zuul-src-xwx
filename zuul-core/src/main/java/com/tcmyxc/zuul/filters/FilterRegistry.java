@@ -6,6 +6,9 @@ import com.tcmyxc.zuul.ZuulFilter;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * done
+ */
 public class FilterRegistry {
 
     // 饿汉式单例

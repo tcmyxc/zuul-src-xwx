@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * 执行过滤器的核心类
+ * 执行过滤器的核心类（done）
  */
 public class FilterProcessor {
 
@@ -36,6 +36,45 @@ public class FilterProcessor {
 
     public void setFilterUsageNotifier(FilterUsageNotifier usageNotifier) {
         this.usageNotifier = usageNotifier;
+    }
+
+    public void postRoute() throws ZuulException{
+        try{
+            runFilters("post");
+        }
+        catch (ZuulException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new ZuulException(e, 500, "UNCAUGHT_EXCEPTION_IN_POST_FILTER_" + e.getClass().getName());
+        }
+    }
+
+    public void error() {
+        try {
+            runFilters("error");
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    public void route() throws ZuulException {
+        try {
+            runFilters("route");
+        } catch (ZuulException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new ZuulException(e, 500, "UNCAUGHT_EXCEPTION_IN_ROUTE_FILTER_" + e.getClass().getName());
+        }
+    }
+
+    public void preRoute() throws ZuulException {
+        try {
+            runFilters("pre");
+        } catch (ZuulException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new ZuulException(e, 500, "UNCAUGHT_EXCEPTION_IN_PRE_FILTER_" + e.getClass().getName());
+        }
     }
 
     public Object runFilters(String filterType) throws Throwable{

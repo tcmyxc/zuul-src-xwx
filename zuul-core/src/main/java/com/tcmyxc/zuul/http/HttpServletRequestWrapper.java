@@ -4,17 +4,20 @@ package com.tcmyxc.zuul.http;
 import com.tcmyxc.zuul.constants.ZuulHeaders;
 import com.tcmyxc.zuul.context.RequestContext;
 import com.tcmyxc.zuul.util.HTTPRequestUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.IOUtils;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
 import java.util.*;
 
+/**
+ * done
+ */
 public class HttpServletRequestWrapper extends javax.servlet.http.HttpServletRequestWrapper {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpServletRequestWrapper.class);
@@ -29,10 +32,26 @@ public class HttpServletRequestWrapper extends javax.servlet.http.HttpServletReq
 
     private long bodyBufferingTimeNs = 0;
 
+    public HttpServletRequestWrapper() {
+        super(groovyTrick());
+    }
+
+    private static HttpServletRequest groovyTrick() {
+        //a trick for Groovy
+        throw new IllegalArgumentException("Please use HttpServletRequestWrapper(HttpServletRequest request) constructor!");
+    }
+
 
     public HttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
         req = request;
+    }
+
+    public HttpServletRequestWrapper(HttpServletRequest request, HttpServletRequest req, byte[] contentData, HashMap<String, String[]> parameters) {
+        super(request);
+        this.req = req;
+        this.contentData = contentData;
+        this.parameters = parameters;
     }
 
     public HttpServletRequestWrapper(HttpServletRequest request, HttpServletRequest req, byte[] contentData, HashMap<String, String[]> parameters, long bodyBufferingTimeNs) {
@@ -41,6 +60,29 @@ public class HttpServletRequestWrapper extends javax.servlet.http.HttpServletReq
         this.contentData = contentData;
         this.parameters = parameters;
         this.bodyBufferingTimeNs = bodyBufferingTimeNs;
+    }
+
+    @Override
+    public HttpServletRequest getRequest() {
+        try {
+            parseRequest();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot parse the request!", e);
+        }
+        return req;
+    }
+
+    public byte[] getContentData() {
+        return contentData;
+    }
+
+    public HashMap<String, String[]> getParameters() {
+        if (parameters == null) return EMPTY_MAP;
+        HashMap<String, String[]> map = new HashMap<>(parameters.size() * 2);
+        for (String key : parameters.keySet()) {
+            map.put(key, parameters.get(key).clone());
+        }
+        return map;
     }
 
     private void parseRequest() throws IOException {
@@ -72,19 +114,19 @@ public class HttpServletRequestWrapper extends javax.servlet.http.HttpServletReq
             } catch (SocketTimeoutException e) {
                 // This can happen if the request body is smaller than the size specified in the
                 // Content-Length header, and using tomcat APR connector.
-                LOG.error("SocketTimeoutException reading request body from inputstream. error=" + String.valueOf(e.getMessage()));
+                logger.error("SocketTimeoutException reading request body from inputstream. error=" + String.valueOf(e.getMessage()));
                 if (contentData == null) {
                     contentData = new byte[0];
                 }
             }
 
             try {
-                LOG.debug("Length of contentData byte array = " + contentData.length);
+                logger.debug("Length of contentData byte array = " + contentData.length);
                 if (req.getContentLength() != contentData.length) {
-                    LOG.warn("Content-length different from byte array length! cl=" + req.getContentLength() + ", array=" + contentData.length);
+                    logger.warn("Content-length different from byte array length! cl=" + req.getContentLength() + ", array=" + contentData.length);
                 }
             } catch (Exception e) {
-                LOG.error("Error checking if request body gzipped!", e);
+                logger.error("Error checking if request body gzipped!", e);
             }
 
             final boolean isPost = req.getMethod().equals("POST");
@@ -129,7 +171,7 @@ public class HttpServletRequestWrapper extends javax.servlet.http.HttpServletReq
             }
         }
 
-        HashMap<String, String[]> map = new HashMap<String, String[]>(mapA.size() * 2);
+        HashMap<String, String[]> map = new HashMap<>(mapA.size() * 2);
         for (String key : mapA.keySet()) {
             list = mapA.get(key);
             map.put(key, list.toArray(new String[list.size()]));
@@ -160,5 +202,90 @@ public class HttpServletRequestWrapper extends javax.servlet.http.HttpServletReq
         }
 
         return should;
+    }
+
+    public long getBodyBufferingTimeNs() {
+        return bodyBufferingTimeNs;
+    }
+
+    @Override
+    public String[] getParameterValues(String name) {
+        try {
+            parseRequest();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot parse the request!", e);
+        }
+        if (parameters == null) return null;
+        String[] arr = parameters.get(name);
+        if (arr == null) return null;
+        return arr.clone();
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        parseRequest();
+
+        return new ServletInputStreamWrapper(contentData);
+    }
+
+    @Override
+    public BufferedReader getReader() throws IOException {
+        parseRequest();
+
+        String enc = req.getCharacterEncoding();
+        if (enc == null)
+            enc = "UTF-8";
+        byte[] data = contentData;
+        if (data == null)
+            data = new byte[0];
+        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data), enc));
+    }
+
+    @Override
+    public String getParameter(String name) {
+        try {
+            parseRequest();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot parse the request!", e);
+        }
+        if (parameters == null) return null;
+        String[] values = parameters.get(name);
+        if (values == null || values.length == 0)
+            return null;
+        return values[0];
+    }
+
+    @Override
+    public Map getParameterMap() {
+        try {
+            parseRequest();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot parse the request!", e);
+        }
+        return getParameters();
+    }
+
+    @Override
+    public Enumeration getParameterNames() {
+        try {
+            parseRequest();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot parse the request!", e);
+        }
+        return new Enumeration<String>() {
+            private String[] arr = getParameters().keySet().toArray(new String[0]);
+            private int idx = 0;
+
+            @Override
+            public boolean hasMoreElements() {
+                return idx < arr.length;
+            }
+
+            @Override
+            public String nextElement() {
+                return arr[idx++];
+            }
+
+        };
     }
 }

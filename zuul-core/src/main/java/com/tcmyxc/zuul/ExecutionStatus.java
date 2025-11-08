@@ -1,6 +1,8 @@
 package com.tcmyxc.zuul;
 
-
+/**
+ * done
+ */
 public enum ExecutionStatus {
 
     SUCCESS (1), SKIPPED(-1), DISABLED(-2), FAILED(-3);

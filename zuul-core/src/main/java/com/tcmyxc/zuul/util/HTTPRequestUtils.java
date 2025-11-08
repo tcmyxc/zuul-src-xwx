@@ -4,11 +4,12 @@ package com.tcmyxc.zuul.util;
 import com.tcmyxc.zuul.context.RequestContext;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.URLDecoder;
+import java.util.*;
 
+/**
+ * done
+ */
 public class HTTPRequestUtils {
 
     private static final HTTPRequestUtils INSTANCE = new HTTPRequestUtils();
@@ -62,13 +63,102 @@ public class HTTPRequestUtils {
         return RequestContext.getCurrentContext().getRequest().getParameter(headerName);
     }
 
-    public Map<String, List<String>> getRequestHeaderMap(){
+    public Map<String, List<String>> getRequestHeaderMap() {
         HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
         Map<String, List<String>> headers = new HashMap<>();
         Enumeration<String> headerNames = request.getHeaderNames();
-        if (headerNames != null){
-            
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                String val = request.getHeader(headerName);
+
+                if (StringUtils.isNotEmpty(headerName) && val != null) {
+                    List<String> valList = new ArrayList<>();
+                    if (headers.containsKey(headerName)) {
+                        headers.get(headerName).add(val);
+                    }
+                    valList.add(val);
+                    headers.put(headerName, valList);
+                }
+            }
         }
+        return Collections.unmodifiableMap(headers);
+    }
+
+    public Map<String, List<String>> getQueryParams() {
+
+        Map<String, List<String>> qp = RequestContext.getCurrentContext().getRequestQueryParams();
+        if (qp != null) return qp;
+
+        HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
+        // 如果请求路径里面不带参数，则直接返回
+        if (request.getQueryString() == null) return null;
+
+        qp = new LinkedHashMap<>();
+        StringTokenizer st = new StringTokenizer(request.getQueryString(), "&");
+        int i;
+        while (st.hasMoreTokens()) {
+            // 形式为 key=val
+            String s = st.nextToken();
+            i = s.indexOf("=");
+            if (i > 0 && s.length() >= i + 1) {
+                String name = s.substring(0, i);
+                String value = s.substring(i + 1);
+
+                try {
+                    name = URLDecoder.decode(name, "UTF-8");
+                } catch (Exception e) {
+                }
+                try {
+                    value = URLDecoder.decode(value, "UTF-8");
+                } catch (Exception e) {
+                }
+
+                List<String> valueList = qp.get(name);
+                if (valueList == null) {
+                    valueList = new LinkedList<>();
+                    qp.put(name, valueList);
+                }
+
+                valueList.add(value);
+            } else if (i == -1) {
+                String name = s;
+                String value = "";
+                try {
+                    name = URLDecoder.decode(name, "UTF-8");
+                } catch (Exception e) {
+                }
+
+                List<String> valueList = qp.get(name);
+                if (valueList == null) {
+                    valueList = new LinkedList<>();
+                    qp.put(name, valueList);
+                }
+
+                valueList.add(value);
+
+            }
+        }
+
+        RequestContext.getCurrentContext().setRequestQueryParams(qp);
+        return qp;
+    }
+
+    public String getValueFromRequestElements(String name) {
+        String val = null;
+        if (getQueryParams() != null) {
+            final List<String> v = getQueryParams().get(name);
+            if (v != null && !v.isEmpty()) val = v.iterator().next();
+        }
+        if (val != null) return val;
+        val = getHeaderValue(name);
+        if (val != null) return val;
+        val = getFormValue(name);
+        return val;
+    }
+
+    public boolean isGzipped(String contentEncoding) {
+        return contentEncoding.contains("gzip");
     }
 
 
