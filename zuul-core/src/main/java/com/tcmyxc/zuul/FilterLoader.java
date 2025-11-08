@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -112,47 +109,24 @@ public class FilterLoader {
         return false;
     }
 
-//    public List<ZuulFilter> getFiltersByType(String filterType) {
-//        List<ZuulFilter> list = hashFiltersByType.get(filterType);
-//        if (list == null) {
-//            return list;
-//        }
-//
-//        list = new ArrayList<>();
-//        Collection<ZuulFilter> allFilters = filterRegistry.getAllFilters();
-//        for (ZuulFilter filter : allFilters) {
-//            if (filter.filterType().equals(filterType)) {
-//                list.add(filter);
-//            }
-//        }
-//        Collections.sort(list);
-//
-//        hashFiltersByType.putIfAbsent(filterType, list);
-//
-//        return list;
-//    }
-
-
     public List<ZuulFilter> getFiltersByType(String filterType) {
+        // 缓存命中则直接返回
         List<ZuulFilter> list = hashFiltersByType.get(filterType);
-        // if cached, return it
         if (list != null) {
             return list;
         }
 
-        // cache miss: build from registry
-        List<ZuulFilter> newList = new ArrayList<>();
+        list = new ArrayList<>();
         Collection<ZuulFilter> allFilters = filterRegistry.getAllFilters();
         for (ZuulFilter filter : allFilters) {
-            if (filter != null && filterType.equals(filter.filterType())) {
-                newList.add(filter);
+            if (filter.filterType().equals(filterType)) {
+                list.add(filter);
             }
         }
-        Collections.sort(newList);
+        Collections.sort(list);
 
-        // putIfAbsent returns existing value if another thread inserted concurrently
-        List<ZuulFilter> existing = hashFiltersByType.putIfAbsent(filterType, newList);
-        return existing == null ? newList : existing;
+        hashFiltersByType.putIfAbsent(filterType, list);
+        return list;
     }
 
 
