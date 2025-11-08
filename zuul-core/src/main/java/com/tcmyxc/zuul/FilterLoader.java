@@ -112,24 +112,48 @@ public class FilterLoader {
         return false;
     }
 
+//    public List<ZuulFilter> getFiltersByType(String filterType) {
+//        List<ZuulFilter> list = hashFiltersByType.get(filterType);
+//        if (list == null) {
+//            return list;
+//        }
+//
+//        list = new ArrayList<>();
+//        Collection<ZuulFilter> allFilters = filterRegistry.getAllFilters();
+//        for (ZuulFilter filter : allFilters) {
+//            if (filter.filterType().equals(filterType)) {
+//                list.add(filter);
+//            }
+//        }
+//        Collections.sort(list);
+//
+//        hashFiltersByType.putIfAbsent(filterType, list);
+//
+//        return list;
+//    }
+
+
     public List<ZuulFilter> getFiltersByType(String filterType) {
         List<ZuulFilter> list = hashFiltersByType.get(filterType);
-        if (list == null) {
+        // if cached, return it
+        if (list != null) {
             return list;
         }
 
-        list = new ArrayList<>();
+        // cache miss: build from registry
+        List<ZuulFilter> newList = new ArrayList<>();
         Collection<ZuulFilter> allFilters = filterRegistry.getAllFilters();
         for (ZuulFilter filter : allFilters) {
-            if (filter.filterType().equals(filterType)) {
-                list.add(filter);
+            if (filter != null && filterType.equals(filter.filterType())) {
+                newList.add(filter);
             }
         }
-        Collections.sort(list);
+        Collections.sort(newList);
 
-        hashFiltersByType.putIfAbsent(filterType, list);
-
-        return list;
+        // putIfAbsent returns existing value if another thread inserted concurrently
+        List<ZuulFilter> existing = hashFiltersByType.putIfAbsent(filterType, newList);
+        return existing == null ? newList : existing;
     }
+
 
 }
