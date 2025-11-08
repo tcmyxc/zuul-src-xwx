@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.tcmyxc.zuul.cloud.ZuulProxyAutoConfiguration,\
+com.tcmyxc.zuul.cloud.ZuulServerAutoConfiguration
