@@ -54,9 +54,10 @@ public class RouteProxyFilter extends ZuulFilter {
 
             URL url = new URL(sb.toString());
             logger.info("Proxying to URL: " + url);
+            // 新建一个http请求示例（尚未发送请求）
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod(req.getMethod());
-            conn.setDoInput(true);
+            conn.setDoInput(true);// 允许读取响应数据
 
             // copy headers
             Enumeration<String> hn = req.getHeaderNames();
@@ -68,7 +69,7 @@ public class RouteProxyFilter extends ZuulFilter {
 
             // copy request body for methods that have one
             if (req.getContentLength() > 0 || "POST".equalsIgnoreCase(req.getMethod()) || "PUT".equalsIgnoreCase(req.getMethod())) {
-                conn.setDoOutput(true);
+                conn.setDoOutput(true);// 允许向服务器写入数据（发送请求体）
                 try (OutputStream os = conn.getOutputStream(); InputStream is = req.getInputStream()) {
                     byte[] buffer = new byte[4096];
                     int r;
@@ -79,6 +80,7 @@ public class RouteProxyFilter extends ZuulFilter {
                 }
             }
 
+            // 实际建立网络连接并发送HTTP请求
             int code = conn.getResponseCode();
             logger.info("Upstream response code: " + code);
             resp.setStatus(code);
