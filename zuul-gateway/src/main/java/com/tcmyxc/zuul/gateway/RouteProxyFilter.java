@@ -2,13 +2,6 @@ package com.tcmyxc.zuul.gateway;
 
 import com.tcmyxc.zuul.ZuulFilter;
 import com.tcmyxc.zuul.context.RequestContext;
-import com.tcmyxc.zuul.filters.FilterRegistry;
-
-import javax.annotation.PostConstruct;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-
 import com.tcmyxc.zuul.exception.ZuulException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +20,6 @@ import java.util.Enumeration;
 public class RouteProxyFilter extends ZuulFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(RouteProxyFilter.class);
-
-    // Register instance into FilterRegistry when the class is loaded by Spring
-    static {
-        try {
-            RouteProxyFilter f = new RouteProxyFilter();
-            FilterRegistry.instance().put(RouteProxyFilter.class.getName(), f);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
     public String filterType() {
