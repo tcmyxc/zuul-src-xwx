@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * done
+ * ZuulServletFilter 和 ZuulServlet 两个用一个就行，但是Spring推荐用ZuulServlet
  */
 public class ZuulServlet extends HttpServlet {
 
