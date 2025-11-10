@@ -13,9 +13,9 @@ public abstract class StaticResponseFilter extends ZuulFilter {
      * Define a URI eg /static/content/path or List of URIs for this filter to return a static response.
      * @return String URI or java.util.List of URIs
      */
-    abstract Object uri();
+    public abstract Object uri();
 
-    abstract String responseBody();
+    public abstract String responseBody();
 
     @Override
     public String filterType() {
