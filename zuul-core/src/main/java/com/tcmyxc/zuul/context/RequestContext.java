@@ -174,6 +174,11 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
         return getBoolean("responseGZipped", true);
     }
 
+    /**
+     * <p>如果值为true，说明响应应该被发送到客户端
+     * <p>如果值为false，说明已经有filter发送响应到客户端了，调用该方法的filter不需要执行run方法
+     * @return
+     */
     public boolean sendZuulResponse() {
         return getBoolean("sendZuulResponse", true);
     }
