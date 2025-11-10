@@ -2,11 +2,8 @@ package com.tcmyxc.zuul.gateway;
 
 import com.tcmyxc.zuul.context.ContextLifecycleFilter;
 import com.tcmyxc.zuul.filters.FilterRegistry;
-import com.tcmyxc.zuul.filters.ZuulServletFilter;
-import com.tcmyxc.zuul.monitoring.CounterFactory;
+import com.tcmyxc.zuul.http.ZuulServlet;
 import com.tcmyxc.zuul.monitoring.MonitoringHelper;
-import com.tcmyxc.zuul.monitoring.TracerFactory;
-import com.tcmyxc.zuul.monitoring.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -14,9 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
-
-import com.tcmyxc.zuul.http.ZuulServlet;
-import javax.servlet.Servlet;
 
 import javax.annotation.PostConstruct;
 
@@ -30,10 +24,11 @@ public class ZuulGatewayApplication {
     }
 
     @Bean
-    public ServletRegistrationBean zuulServletRegistration() {
+    public ServletRegistrationBean zuulServlet() {
         // Register the core ZuulServlet from zuul-core so the full pre/route/post pipeline runs
         ServletRegistrationBean registration = new ServletRegistrationBean(new ZuulServlet(), "/*");
-        registration.addInitParameter("buffer-requests", "true");
+        // 暴露这个filter的意思就在于提供一个不缓存请求的路由
+        registration.addInitParameter("buffer-requests", "false");
         registration.setName("zuulServlet");
         registration.setLoadOnStartup(1);
         return registration;

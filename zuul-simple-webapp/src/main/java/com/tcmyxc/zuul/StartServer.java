@@ -4,7 +4,6 @@ package com.tcmyxc.zuul;
 import com.tcmyxc.zuul.context.ContextLifecycleFilter;
 import com.tcmyxc.zuul.context.RequestContext;
 import com.tcmyxc.zuul.filters.FilterRegistry;
-import com.tcmyxc.zuul.filters.ZuulServletFilter;
 import com.tcmyxc.zuul.http.ZuulServlet;
 import com.tcmyxc.zuul.monitoring.MonitoringHelper;
 import org.slf4j.Logger;
@@ -30,10 +29,10 @@ public class StartServer {
     }
 
     @Bean
-    public ServletRegistrationBean zuulServletRegistration() {
+    public ServletRegistrationBean zuulServlet() {
         // Register the core ZuulServlet from zuul-core so the full pre/route/post pipeline runs
         ServletRegistrationBean registration = new ServletRegistrationBean(new ZuulServlet(), "/*");
-        registration.addInitParameter("buffer-requests", "true");
+        registration.addInitParameter("buffer-requests", "false");
         registration.setName("zuulServlet");
         registration.setLoadOnStartup(1);
         return registration;
