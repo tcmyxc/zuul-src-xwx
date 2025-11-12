@@ -34,6 +34,17 @@ public class ZuulGatewayApplication {
         return registration;
     }
 
+    // zuulServlet 和 zuulServletFilter 仅需要配置其中一个就行，spring cloud 推荐配置 zuulServlet
+    // @Bean
+    // public FilterRegistrationBean zuulServletFilter(){
+    //     final FilterRegistrationBean<ZuulServletFilter> filterRegistration = new FilterRegistrationBean<>();
+    //     filterRegistration.addUrlPatterns("/*");
+    //     filterRegistration.setFilter(new ZuulServletFilter());
+    //     filterRegistration.setOrder(Ordered.LOWEST_PRECEDENCE);
+    //     filterRegistration.addInitParameter("buffer-requests", "false");
+    //     return filterRegistration;
+    // }
+
     @Bean
     public FilterRegistrationBean contextLifecycleFilter() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
