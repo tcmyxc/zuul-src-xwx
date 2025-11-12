@@ -49,7 +49,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
         return getBoolean(key, false);
     }
 
-    private boolean getBoolean(String key, boolean defaultResponse) {
+    public boolean getBoolean(String key, boolean defaultResponse) {
         Boolean b = (Boolean) get(key);
         if (b != null) {
             return b.booleanValue();
