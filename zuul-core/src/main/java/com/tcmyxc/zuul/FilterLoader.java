@@ -5,9 +5,10 @@ import com.tcmyxc.zuul.filters.FilterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,29 +24,16 @@ public class FilterLoader {
     private FilterLoader(){}
 
     /**
-     * 记录从文件加载的filter对应文件的上次修改时间
-     */
-    private final ConcurrentHashMap<String, Long> filterClassLastModified = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, String> filterClassCode = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, String> filterCheck = new ConcurrentHashMap<>();
-
-    /**
      * 快表，根据filter type查询过滤器的时候，先从这个表里面查，如果没有，说明就是没有，直接返回；有的话再从filterRegistry里面查
      */
     private final ConcurrentHashMap<String, List<ZuulFilter>> hashFiltersByType = new ConcurrentHashMap<>();
 
     private FilterRegistry filterRegistry = FilterRegistry.instance();
 
-    static DynamicCodeCompiler COMPILER;
-
     static FilterFactory FILTER_FACTORY = new DefaultFilterFactory();
 
     public void setFilterRegistry(FilterRegistry filterRegistry) {
         this.filterRegistry = filterRegistry;
-    }
-
-    public static void setCompiler(DynamicCodeCompiler compiler) {
-        COMPILER = compiler;
     }
 
     public static void setFilterFactory(FilterFactory filterFactory) {
@@ -56,57 +44,8 @@ public class FilterLoader {
         return INSTANCE;
     }
 
-    public ZuulFilter getFilter(String code, String name) throws Exception {
-        if (filterCheck.get(name) == null) {
-            filterCheck.putIfAbsent(name, name);
-            if (!code.equals(filterClassCode.get(name))) {
-                logger.info("reloading code " + name);
-                filterRegistry.remove(name);
-            }
-        }
-
-        ZuulFilter filter = filterRegistry.get(name);
-        if (filter == null) {
-            Class clazz = COMPILER.compile(code, name);
-            if (!Modifier.isAbstract(clazz.getModifiers())) {
-                filter = FILTER_FACTORY.newInstance(clazz);
-            }
-        }
-        return filter;
-    }
-
     public int filerInstanceMapSize() {
         return filterRegistry.size();
-    }
-
-    /**
-     * 从文件中读取ZuulFilter源码，编译之后加入过滤器列表
-     */
-    public boolean putFilter(File file) throws Exception {
-        String name = file.getAbsolutePath() + file.getName();
-        Long modifiedTime = filterClassLastModified.get(name);
-        // 如果该文件被修改过，而且最近的修改时间和记录的不一致，则先卸载原来的filter
-        if (modifiedTime != null && (file.lastModified() != modifiedTime)) {
-            logger.debug("reloading filter " + name);
-            filterRegistry.remove(name);
-        }
-        ZuulFilter filter = filterRegistry.get(name);
-        if (filter == null) {
-            Class clazz = COMPILER.compile(file);
-            if (!Modifier.isAbstract(clazz.getModifiers())) {
-                filter = FILTER_FACTORY.newInstance(clazz);
-                // 如果快表里面有信息，要清除
-                List<ZuulFilter> list = hashFiltersByType.get(filter.filterType());
-                if (list != null) {
-                    hashFiltersByType.remove(filter.filterType());
-                }
-                // 放到缓存里面
-                filterRegistry.put(name, filter);
-                filterClassLastModified.put(name, file.lastModified());
-                return true;
-            }
-        }
-        return false;
     }
 
     public List<ZuulFilter> getFiltersByType(String filterType) {
@@ -116,6 +55,7 @@ public class FilterLoader {
             return list;
         }
 
+        // 如果没有命中，则从注册表里面查询
         list = new ArrayList<>();
         Collection<ZuulFilter> allFilters = filterRegistry.getAllFilters();
         for (ZuulFilter filter : allFilters) {
@@ -128,6 +68,4 @@ public class FilterLoader {
         hashFiltersByType.putIfAbsent(filterType, list);
         return list;
     }
-
-
 }
