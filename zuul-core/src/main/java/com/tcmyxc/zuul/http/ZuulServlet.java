@@ -30,6 +30,7 @@ public class ZuulServlet extends HttpServlet {
         zuulRunner = new ZuulRunner(bufferReqs);
     }
 
+    // 重写该方法后，需要自己写请求的转发逻辑，以及响应发送给客户端的逻辑
     @Override
     public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
         try {

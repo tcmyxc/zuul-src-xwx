@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * done
+ * filter 注册中心，所有在运行中使用到的 filter 都必须注册到这里
  */
 public class FilterRegistry {
 

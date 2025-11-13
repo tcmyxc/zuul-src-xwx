@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * done
+ * 主要功能：根据给定的 filterType，返回对应类型的 filter 列表
  */
 public class FilterLoader {
 
@@ -48,6 +48,11 @@ public class FilterLoader {
         return filterRegistry.size();
     }
 
+    /**
+     * 根据给定的 filterType，返回对应类型的 filter 列表
+     * @param filterType
+     * @return 对应类型的 filter 列表
+     */
     public List<ZuulFilter> getFiltersByType(String filterType) {
         // 缓存命中则直接返回
         List<ZuulFilter> list = hashFiltersByType.get(filterType);
