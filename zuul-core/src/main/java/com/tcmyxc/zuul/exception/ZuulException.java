@@ -3,6 +3,9 @@ package com.tcmyxc.zuul.exception;
 
 import com.tcmyxc.zuul.monitoring.CounterFactory;
 
+/**
+ * ZuulException 异常类
+ */
 public class ZuulException extends Exception {
 
     public int statusCode;
